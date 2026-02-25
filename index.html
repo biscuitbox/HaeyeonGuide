@@ -3,97 +3,113 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>학교 안내 - 3장 사진 (contain/고정/목록 이동)</title>
+  <title>학교 안내 - 3장 사진 (상단 목록/contain/고정)</title>
 
   <style>
     html, body { height: 100%; margin: 0; }
     #wrap { position: relative; width: 100vw; height: 100vh; overflow: hidden; background:#111; }
 
-    /* 화면(뷰포트) */
-    #stage {
-      position: absolute;
+    /* 상단 바 */
+    #topbar{
+      position:absolute; left: 10px; right: 10px; top: 10px;
+      z-index: 10;
+      display: grid;
+      gap: 8px;
+    }
+    .bar{
+      display:flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 8px;
+      border-radius: 14px;
+      background: rgba(15,15,18,.62);
+      border: 1px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(10px);
+      align-items: center;
+    }
+    .btn{
+      border: 0;
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-weight: 900;
+      cursor: pointer;
+      background: rgba(255,255,255,.10);
+      color: #fff;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", sans-serif;
+      font-size: 12px;
+      line-height: 1;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .btn.active{
+      background:#2f7cff;
+      outline:2px solid rgba(47,124,255,.55);
+    }
+
+    /* 뷰포트 */
+    #stage{
+      position:absolute;
       inset: 0;
       overflow: hidden;
       touch-action: none; /* 확대/스크롤 제스처 최소화 */
     }
 
-    /* 이미지 + 마커 레이어를 한 덩어리로 이동(= 카메라 이동 효과) */
-    #world {
-      position: absolute;
-      left: 0; top: 0;
+    /* 이미지+마커 덩어리 (이동=카메라 이동 효과) */
+    #world{
+      position:absolute;
+      left:0; top:0;
       will-change: transform;
       transition: transform 420ms ease;
     }
 
-    #photo {
-      display: block;
-      max-width: none;
-      user-select: none;
-      -webkit-user-drag: none;
-      pointer-events: none; /* 사용자가 사진을 눌러도 아무 반응 없게 */
+    #photo{
+      display:block;
+      max-width:none;
+      user-select:none;
+      -webkit-user-drag:none;
+      pointer-events:none; /* 사용자가 만져도 반응 없음 */
     }
 
-    /* 마커(선택): "글자만 둥둥" / 클릭 불가 */
-    .txt-marker {
-      position: absolute;
+    /* 마커(글자만 둥둥) */
+    .txt-marker{
+      position:absolute;
       transform: translate(-50%, -50%);
-      color: #fff;
-      font-weight: 900;
-      font-size: 18px;
-      letter-spacing: -0.5px;
-      text-shadow: 0 2px 10px rgba(0,0,0,.95);
-      white-space: nowrap;
-      user-select: none;
-      pointer-events: none; /* 마커 자체 클릭 방지 */
+      color:#fff;
+      font-weight:900;
+      font-size:18px;
+      letter-spacing:-0.5px;
+      text-shadow:0 2px 10px rgba(0,0,0,.95);
+      white-space:nowrap;
+      user-select:none;
+      pointer-events:none; /* 마커 클릭 막음 */
     }
 
-    /* 우측 패널 */
-    #panel{
-      position:absolute; top:12px; right:12px;
-      width:min(360px, calc(100vw - 24px));
-      max-height:calc(100vh - 24px); overflow:auto;
-      background:rgba(15,15,18,.72); color:#fff;
-      border:1px solid rgba(255,255,255,.15);
-      border-radius:14px; padding:12px;
-      backdrop-filter:blur(10px);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", sans-serif;
-      z-index: 10;
-    }
-    #panel h1{ font-size:14px; margin:0 0 8px 0; opacity:.9; }
-    .hint{ font-size:12px; opacity:.85; line-height:1.45; margin-bottom:10px; }
-
-    .seg{ display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 12px; }
-    button{
-      border:0; border-radius:10px; padding:8px 10px;
-      font-weight:800; cursor:pointer;
-      background:rgba(255,255,255,.10); color:#fff;
-    }
-    button.active{ outline:2px solid rgba(47,124,255,.95); background:#2f7cff; }
-
-    .list{ display:grid; gap:8px; margin-top:10px; }
-    .item{
-      padding:10px; border-radius:12px;
-      background:rgba(255,255,255,.08);
-      border:1px solid rgba(255,255,255,.10);
-      cursor:pointer;
-    }
-    .item:hover{ background:rgba(255,255,255,.12); }
-    .name{ font-size:13px; font-weight:900; }
-    .meta{ font-size:11px; opacity:.85; margin-top:2px; }
-
+    /* 토스트 */
     #toast{
       position:absolute; left:12px; bottom:12px;
       background:rgba(0,0,0,.65); color:#fff;
       padding:10px 12px; border-radius:12px; font-size:12px;
       opacity:0; transform:translateY(8px); transition:.18s ease;
       pointer-events:none; z-index: 20;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", sans-serif;
     }
     #toast.show{ opacity:1; transform:translateY(0); }
+
+    @media (max-width: 420px) {
+      .btn { padding: 6px 9px; font-size: 11px; }
+      .bar { padding: 7px; }
+    }
   </style>
 </head>
 
 <body>
 <div id="wrap">
+  <!-- 상단 바: 사진 탭 + 장소 목록 -->
+  <div id="topbar">
+    <div class="bar" id="sceneTabs"></div>
+    <div class="bar" id="placeTabs"></div>
+  </div>
+
   <div id="stage">
     <div id="world">
       <img id="photo" alt="school photo" />
@@ -101,35 +117,21 @@
     </div>
   </div>
 
-  <div id="panel">
-    <h1>📍 장소 목록</h1>
-    <div class="hint">
-      - 사진은 <b>확대/축소/드래그 불가</b> (고정)<br/>
-      - <b>contain</b> 모드: 사진이 잘리지 않고 모두 보입니다.<br/>
-      - 목록을 누르면 해당 위치가 <b>가운데로 오도록</b> 화면이 이동합니다.<br/>
-      - 좌표는 아래 <b>좌표 입력 영역</b>에서 직접 넣으세요.
-    </div>
-
-    <div class="seg" id="sceneTabs"></div>
-    <div class="list" id="placeList"></div>
-  </div>
-
   <div id="toast"></div>
 </div>
 
 <script>
   /********************************************************************
-   * 1) 사진 설정 (파일명: images/1.jpg, images/2.jpg, images/3.jpg)
+   * 1) 사진 설정
    ********************************************************************/
   const SCENES = [
-    { id: 'img1', name: '전경', src: 'images/1.jpg' },
-    { id: 'img2', name: '신관', src: 'images/2.jpg' },
-    { id: 'img3', name: '구관', src: 'images/3.jpg' },
+    { id: 'img1', name: '사진 1', src: 'images/1.jpg' },
+    { id: 'img2', name: '사진 2', src: 'images/2.jpg' },
+    { id: 'img3', name: '사진 3', src: 'images/3.jpg' },
   ];
 
   /********************************************************************
-   * 2) 장소 목록
-   *    ✅ 장소를 추가/삭제할 때는 여기 PLACES만 수정하면 됩니다.
+   * 2) 장소 목록 (추가/삭제는 여기만)
    ********************************************************************/
   const PLACES = [
     '무한상상실',
@@ -139,64 +141,51 @@
     '상담실',
     '보건실',
     '가사실',
-    // 예: '도서관', '미술실'
+    // '도서관',
   ];
 
   /********************************************************************
-   * 3) 좌표 입력 (장면별로 직접 넣고 싶은 값만 override)
-   *    - 좌표는 0~1 비율(이미지 기준)입니다.
-   *      예) x:0.25 => 이미지 가로 25% 지점
+   * 3) ✅ 장소별 데이터: "어느 사진(scene)인지 + 좌표(x,y) 1세트"
+   *    - 좌표는 0~1 비율(이미지 기준)
+   *    - scene은 'img1' | 'img2' | 'img3'
    *
-   *    ✅ 여기서는 "일부만" 적어도 됩니다.
-   *       나머지는 자동으로 null로 채워져 누락 방지됩니다.
+   *    좌표를 아직 모르거나 표시하지 않을 곳은 x/y를 null로 두면 됩니다.
    ********************************************************************/
-  const MARKER_OVERRIDES = {
-    img1: {
-      // '과학실': { x: 0.62, y: 0.41 },
-    },
-    img2: {
-      // '과학실': { x: 0.55, y: 0.50 },
-    },
-    img3: {
-      // '과학실': { x: 0.30, y: 0.70 },
-    }
+  const PLACE_DATA = {
+    '무한상상실': { scene: 'img1', x: null, y: null },
+    '교무실':     { scene: 'img1', x: null, y: null },
+    '과학실':     { scene: 'img1', x: null, y: null },
+    '행정실':     { scene: 'img2', x: null, y: null },
+    '상담실':     { scene: 'img2', x: null, y: null },
+    '보건실':     { scene: 'img3', x: null, y: null },
+    '가사실':     { scene: 'img3', x: null, y: null },
+
+    // 예) '도서관': { scene: 'img1', x: 0.33, y: 0.62 },
   };
 
   /********************************************************************
-   * 4) 자동 MARKERS 생성 (PLACES만 바꾸면 자동으로 맞춰짐)
+   * 4) 자동 검증/보정: PLACES만 늘려도 누락 없이 기본값 생성
    ********************************************************************/
-  function buildMarkers() {
-    const markers = {};
-    for (const scene of SCENES) {
-      markers[scene.id] = {};
-      for (const place of PLACES) {
-        markers[scene.id][place] = { x: null, y: null };
-      }
-      // overrides 적용(있는 것만 덮어쓰기)
-      const o = MARKER_OVERRIDES?.[scene.id] || {};
-      for (const [place, pos] of Object.entries(o)) {
-        if (place in markers[scene.id]) {
-          markers[scene.id][place] = {
-            x: (typeof pos?.x === 'number') ? pos.x : null,
-            y: (typeof pos?.y === 'number') ? pos.y : null,
-          };
-        }
-      }
+  function normalizePlaceData() {
+    const sceneIds = new Set(SCENES.map(s => s.id));
+    for (const place of PLACES) {
+      if (!PLACE_DATA[place]) PLACE_DATA[place] = { scene: SCENES[0].id, x: null, y: null };
+      const d = PLACE_DATA[place];
+      if (!sceneIds.has(d.scene)) d.scene = SCENES[0].id;
+      if (typeof d.x !== 'number') d.x = null;
+      if (typeof d.y !== 'number') d.y = null;
     }
-    return markers;
   }
-
-  // 실제로 사용하는 마커 맵
-  const MARKERS = buildMarkers();
+  normalizePlaceData();
 
   /********************************************************************
-   * 5) DOM 참조
+   * 5) DOM/상태
    ********************************************************************/
   const $photo = document.getElementById('photo');
   const $world = document.getElementById('world');
   const $markersLayer = document.getElementById('markersLayer');
-  const $tabs = document.getElementById('sceneTabs');
-  const $list = document.getElementById('placeList');
+  const $sceneTabs = document.getElementById('sceneTabs');
+  const $placeTabs = document.getElementById('placeTabs');
   const $toast = document.getElementById('toast');
   const $stage = document.getElementById('stage');
 
@@ -206,37 +195,11 @@
     $toast.textContent = msg;
     $toast.classList.add('show');
     clearTimeout(toast._t);
-    toast._t = setTimeout(() => $toast.classList.remove('show'), 1200);
+    toast._t = setTimeout(() => $toast.classList.remove('show'), 1000);
   }
 
   /********************************************************************
-   * 6) 마커 렌더링
-   ********************************************************************/
-  function clearMarkers() {
-    $markersLayer.innerHTML = '';
-  }
-
-  function addMarker(label, x, y) {
-    const el = document.createElement('div');
-    el.className = 'txt-marker';
-    el.textContent = label;
-    el.style.left = `${x * 100}%`;
-    el.style.top  = `${y * 100}%`;
-    $markersLayer.appendChild(el);
-  }
-
-  function renderMarkers() {
-    clearMarkers();
-    const sceneMap = MARKERS[currentSceneId] || {};
-    for (const place of PLACES) {
-      const p = sceneMap[place];
-      if (!p || p.x == null || p.y == null) continue;
-      addMarker(place, p.x, p.y);
-    }
-  }
-
-  /********************************************************************
-   * 7) contain 레이아웃 + 이동(moveTo)
+   * 6) contain 레이아웃 + 이동(moveTo)
    ********************************************************************/
   function layoutContain() {
     const sw = $stage.clientWidth;
@@ -245,8 +208,7 @@
     const ih = $photo.naturalHeight;
     if (!iw || !ih) return;
 
-    // contain 스케일: 사진이 잘리지 않도록
-    const scale = Math.min(sw / iw, sh / ih);
+    const scale = Math.min(sw / iw, sh / ih); // contain
     const w = iw * scale;
     const h = ih * scale;
 
@@ -256,7 +218,6 @@
     $world.style.height = `${h}px`;
   }
 
-  // 특정 비율좌표(x,y)를 화면 중앙으로
   function moveTo(x, y) {
     const sw = $stage.clientWidth;
     const sh = $stage.clientHeight;
@@ -270,17 +231,14 @@
     let tx = (sw / 2) - cx;
     let ty = (sh / 2) - cy;
 
-    // contain에서는 world가 stage보다 작을 수 있으니 "작으면 가운데 고정"
-    if (w <= sw) {
-      tx = (sw - w) / 2;
-    } else {
+    if (w <= sw) tx = (sw - w) / 2;
+    else {
       const minTx = sw - w;
       tx = Math.min(0, Math.max(minTx, tx));
     }
 
-    if (h <= sh) {
-      ty = (sh - h) / 2;
-    } else {
+    if (h <= sh) ty = (sh - h) / 2;
+    else {
       const minTy = sh - h;
       ty = Math.min(0, Math.max(minTy, ty));
     }
@@ -289,44 +247,76 @@
   }
 
   /********************************************************************
-   * 8) 탭/목록 UI
+   * 7) 마커 렌더링: "현재 사진"에 속한 장소만 표시
    ********************************************************************/
-  function renderTabs() {
-    $tabs.innerHTML = '';
-    SCENES.forEach(s => {
-      const b = document.createElement('button');
-      b.textContent = s.name;
-      if (s.id === currentSceneId) b.classList.add('active');
-      b.onclick = () => switchScene(s.id);
-      $tabs.appendChild(b);
-    });
+  function clearMarkers() { $markersLayer.innerHTML = ''; }
+
+  function addMarker(label, x, y) {
+    const el = document.createElement('div');
+    el.className = 'txt-marker';
+    el.textContent = label;
+    el.style.left = `${x * 100}%`;
+    el.style.top  = `${y * 100}%`;
+    $markersLayer.appendChild(el);
   }
 
-  function renderList() {
-    $list.innerHTML = '';
-    const sceneMap = MARKERS[currentSceneId] || {};
+  function renderMarkersForCurrentScene() {
+    clearMarkers();
+    for (const place of PLACES) {
+      const d = PLACE_DATA[place];
+      if (!d) continue;
+      if (d.scene !== currentSceneId) continue;
+      if (d.x == null || d.y == null) continue;
+      addMarker(place, d.x, d.y);
+    }
+  }
 
-    PLACES.forEach(place => {
-      const pos = sceneMap[place] || { x: null, y: null };
+  function firstDefinedPosInScene(sceneId) {
+    for (const place of PLACES) {
+      const d = PLACE_DATA[place];
+      if (d && d.scene === sceneId && d.x != null && d.y != null) return d;
+    }
+    return null;
+  }
 
-      const item = document.createElement('div');
-      item.className = 'item';
-      item.innerHTML = `
-        <div class="name">${place}</div>
-        <div class="meta">${(pos.x == null) ? '좌표 미지정' : `x:${pos.x}, y:${pos.y}`}</div>
-      `;
+  /********************************************************************
+   * 8) 상단 탭 렌더링
+   ********************************************************************/
+  function renderSceneTabs() {
+    $sceneTabs.innerHTML = '';
+    for (const s of SCENES) {
+      const b = document.createElement('button');
+      b.className = 'btn' + (s.id === currentSceneId ? ' active' : '');
+      b.textContent = s.name;
+      b.onclick = () => switchScene(s.id);
+      $sceneTabs.appendChild(b);
+    }
+  }
 
-      item.onclick = () => {
-        if (pos.x == null || pos.y == null) {
-          toast(`${place}: 좌표를 아직 넣지 않았어요.`);
+  function renderPlaceTabs() {
+    $placeTabs.innerHTML = '';
+    for (const place of PLACES) {
+      const b = document.createElement('button');
+      b.className = 'btn';
+      b.textContent = place;
+
+      b.onclick = async () => {
+        const d = PLACE_DATA[place];
+        if (!d || d.x == null || d.y == null) {
+          toast(`${place}: 좌표 미지정`);
           return;
         }
-        moveTo(pos.x, pos.y);
+
+        // ✅ 장소가 속한 사진으로 자동 전환 후 이동
+        if (d.scene !== currentSceneId) {
+          await switchScene(d.scene);
+        }
+        moveTo(d.x, d.y);
         toast(`${place}로 이동`);
       };
 
-      $list.appendChild(item);
-    });
+      $placeTabs.appendChild(b);
+    }
   }
 
   /********************************************************************
@@ -341,39 +331,26 @@
     });
   }
 
-  function firstDefinedPos(sceneId) {
-    const sceneMap = MARKERS[sceneId] || {};
-    for (const place of PLACES) {
-      const p = sceneMap[place];
-      if (p && p.x != null && p.y != null) return p;
-    }
-    return null;
-  }
-
   async function switchScene(sceneId) {
     if (sceneId === currentSceneId) return;
     currentSceneId = sceneId;
 
-    renderTabs();
+    renderSceneTabs();
     await loadImage(sceneId);
 
     layoutContain();
-    renderMarkers();
-    renderList();
+    renderMarkersForCurrentScene();
 
-    const first = firstDefinedPos(sceneId);
+    const first = firstDefinedPosInScene(sceneId);
     if (first) moveTo(first.x, first.y);
     else moveTo(0.5, 0.5);
-
-    toast(`${SCENES.find(s => s.id === sceneId)?.name} 전환 완료`);
   }
 
   /********************************************************************
-   * 10) 리사이즈 처리
+   * 10) 리사이즈
    ********************************************************************/
   window.addEventListener('resize', () => {
     layoutContain();
-    // contain에서는 중앙 유지가 자연스러움
     moveTo(0.5, 0.5);
   });
 
@@ -381,14 +358,14 @@
    * 11) 초기 시작
    ********************************************************************/
   (async function init() {
-    renderTabs();
+    renderSceneTabs();
+    renderPlaceTabs();
     await loadImage(currentSceneId);
 
     layoutContain();
-    renderMarkers();
-    renderList();
+    renderMarkersForCurrentScene();
 
-    const first = firstDefinedPos(currentSceneId);
+    const first = firstDefinedPosInScene(currentSceneId);
     if (first) moveTo(first.x, first.y);
     else moveTo(0.5, 0.5);
 
