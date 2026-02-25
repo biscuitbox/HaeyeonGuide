@@ -125,23 +125,34 @@
    * 1) 사진 설정
    ********************************************************************/
   const SCENES = [
-    { id: 'img1', name: '사진 1', src: 'images/1.jpg' },
-    { id: 'img2', name: '사진 2', src: 'images/2.jpg' },
-    { id: 'img3', name: '사진 3', src: 'images/3.jpg' },
+    { id: 'img1', name: '전경', src: 'images/1.jpg' },
+    { id: 'img2', name: '신관', src: 'images/2.jpg' },
+    { id: 'img3', name: '구관', src: 'images/3.jpg' },
   ];
 
   /********************************************************************
    * 2) 장소 목록 (추가/삭제는 여기만)
    ********************************************************************/
   const PLACES = [
-    '무한상상실',
+    '교장실',
     '교무실',
-    '과학실',
     '행정실',
     '상담실',
     '보건실',
+    '제1과학실',
+    '제2과학실',
+    '무한상상실',    
+    '컴퓨터실',
+    '정보모둠실',
+    '방송실',
+    '정보실',
     '가사실',
-    // '도서관',
+    '강당(체육관, 급식실)',
+    '무용실(소강당)',
+    '음악실',
+    '진로활동실',
+    '학생자치실',
+    '도서관, 영어실, 미술실'    
   ];
 
   /********************************************************************
@@ -152,14 +163,25 @@
    *    좌표를 아직 모르거나 표시하지 않을 곳은 x/y를 null로 두면 됩니다.
    ********************************************************************/
   const PLACE_DATA = {
+    '교장실': { scene: 'img2', x: 200, y: 200 },
+    '교무실': { scene: 'img1', x: null, y: null },
+    '행정실': { scene: 'img1', x: null, y: null },
+    '상담실': { scene: 'img1', x: null, y: null },
+    '보건실': { scene: 'img1', x: null, y: null },
+    '제1과학실': { scene: 'img1', x: null, y: null },
+    '제2과학실': { scene: 'img1', x: null, y: null },
     '무한상상실': { scene: 'img1', x: null, y: null },
-    '교무실':     { scene: 'img1', x: null, y: null },
-    '과학실':     { scene: 'img1', x: null, y: null },
-    '행정실':     { scene: 'img2', x: null, y: null },
-    '상담실':     { scene: 'img2', x: null, y: null },
-    '보건실':     { scene: 'img3', x: null, y: null },
-    '가사실':     { scene: 'img3', x: null, y: null },
-
+    '컴퓨터실': { scene: 'img1', x: null, y: null },
+    '정보모둠실': { scene: 'img1', x: null, y: null },
+    '방송실': { scene: 'img1', x: null, y: null },
+    '정보실': { scene: 'img1', x: null, y: null },
+    '가사실': { scene: 'img1', x: null, y: null },
+    '강당(체육관), 급식실': { scene: 'img1', x: null, y: null },
+    '무용실(소강당)': { scene: 'img1', x: null, y: null },
+    '음악실': { scene: 'img1', x: null, y: null },
+    '진로활동실': { scene: 'img1', x: null, y: null },
+    '학생자치실': { scene: 'img1', x: null, y: null },
+    '도서관, 영어실, 미술실': { scene: 'img1', x: null, y: null }
     // 예) '도서관': { scene: 'img1', x: 0.33, y: 0.62 },
   };
 
