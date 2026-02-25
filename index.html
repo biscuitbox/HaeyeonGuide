@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>학교 안내 - 3장 사진 (상단 목록/contain/고정)</title>
+  <title>해연중 안내 - 3장 사진 (상단 목록/contain/고정)</title>
 
   <style>
     html, body { height: 100%; margin: 0; }
@@ -60,6 +60,7 @@
       left:0; top:0;
       will-change: transform;
       transition: transform 420ms ease;
+      z-index: 1;
     }
 
     #photo{
@@ -67,7 +68,16 @@
       max-width:none;
       user-select:none;
       -webkit-user-drag:none;
-      pointer-events:none; /* 사용자가 만져도 반응 없음 */
+      pointer-events:none; /* 사진 클릭은 stage에서 받음 */
+    }
+
+    /* 마커 레이어(필수) */
+    #markersLayer{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      pointer-events:none;
     }
 
     /* 마커(글자만 둥둥) */
@@ -84,7 +94,7 @@
       pointer-events:none; /* 마커 클릭 막음 */
     }
 
-    /* 토스트 */
+    /* 토스트(방문자용 안내용만) */
     #toast{
       position:absolute; left:12px; bottom:12px;
       background:rgba(0,0,0,.65); color:#fff;
@@ -122,7 +132,7 @@
 
 <script>
   /********************************************************************
-   * 1) 사진 설정
+   * 1) 사진 설정 (업로드 파일명: images/1.jpg, 2.jpg, 3.jpg)
    ********************************************************************/
   const SCENES = [
     { id: 'img1', name: '전경', src: 'images/1.jpg' },
@@ -133,7 +143,7 @@
   /********************************************************************
    * 2) 장소 목록 (추가/삭제는 여기만)
    ********************************************************************/
-  const PLACES = [
+   const PLACES = [
     '교장실',
     '교무실',
     '행정실',
@@ -185,8 +195,9 @@
     // 예) '도서관': { scene: 'img1', x: 0.33, y: 0.62 },
   };
 
+
   /********************************************************************
-   * 4) 자동 검증/보정: PLACES만 늘려도 누락 없이 기본값 생성
+   * 4) PLACES만 늘려도 누락 방지되게 자동 보정
    ********************************************************************/
   function normalizePlaceData() {
     const sceneIds = new Set(SCENES.map(s => s.id));
@@ -217,7 +228,7 @@
     $toast.textContent = msg;
     $toast.classList.add('show');
     clearTimeout(toast._t);
-    toast._t = setTimeout(() => $toast.classList.remove('show'), 1000);
+    toast._t = setTimeout(() => $toast.classList.remove('show'), 900);
   }
 
   /********************************************************************
@@ -253,6 +264,7 @@
     let tx = (sw / 2) - cx;
     let ty = (sh / 2) - cy;
 
+    // contain에서는 world가 stage보다 작을 수 있으니 "작으면 가운데 고정"
     if (w <= sw) tx = (sw - w) / 2;
     else {
       const minTx = sw - w;
@@ -328,11 +340,8 @@
           toast(`${place}: 좌표 미지정`);
           return;
         }
-
-        // ✅ 장소가 속한 사진으로 자동 전환 후 이동
-        if (d.scene !== currentSceneId) {
-          await switchScene(d.scene);
-        }
+        // 장소가 속한 사진으로 자동 전환 후 이동
+        if (d.scene !== currentSceneId) await switchScene(d.scene);
         moveTo(d.x, d.y);
         toast(`${place}로 이동`);
       };
@@ -369,7 +378,63 @@
   }
 
   /********************************************************************
-   * 10) 리사이즈
+   * 10) ✅ 개발자용 좌표 찍기 모드 (PC 전용 가정)
+   *     - Shift + 클릭일 때만 동작 (기본 OFF)
+   *     - 출력: Console + 클립보드 자동 복사
+   ********************************************************************/
+  function screenToRatioXY(clientX, clientY) {
+    // stage 안에서 실제 이미지가 그려진 영역(world의 크기/위치)을 기준으로 비율좌표 계산
+    const imgRect = $photo.getBoundingClientRect();
+    const rx = (clientX - imgRect.left) / imgRect.width;
+    const ry = (clientY - imgRect.top) / imgRect.height;
+
+    // 이미지 바깥(여백) 클릭이면 null
+    if (rx < 0 || rx > 1 || ry < 0 || ry > 1) return null;
+    return { x: rx, y: ry };
+  }
+
+  async function copyToClipboard(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // fallback
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+    }
+  }
+
+  $stage.addEventListener('click', async (e) => {
+    // ✅ Shift 안 누르면 아무 것도 안 함 (방문자에게는 기능이 사실상 없음)
+    if (!e.shiftKey) return;
+
+    const pos = screenToRatioXY(e.clientX, e.clientY);
+    if (!pos) {
+      console.log('[좌표] 이미지 밖(여백)을 클릭했습니다.');
+      toast('이미지 영역을 Shift+클릭하세요');
+      return;
+    }
+
+    const x = Number(pos.x.toFixed(6));
+    const y = Number(pos.y.toFixed(6));
+
+    // 콘솔 출력 (place 설정에 바로 복붙하기 좋게)
+    const snippet = `{ scene: '${currentSceneId}', x: ${x}, y: ${y} }`;
+    console.log(`[좌표] scene=${currentSceneId}  x=${x}, y=${y}`);
+    console.log(`[복붙용] ${snippet}`);
+
+    // 자동 복사 (편의)
+    await copyToClipboard(snippet);
+
+    // 방문자에게 과하게 노출될 필요 없지만, 작업자는 알 수 있게 아주 짧게만
+    toast('좌표 복사됨(Shift+클릭)');
+  });
+
+  /********************************************************************
+   * 11) 리사이즈
    ********************************************************************/
   window.addEventListener('resize', () => {
     layoutContain();
@@ -377,7 +442,7 @@
   });
 
   /********************************************************************
-   * 11) 초기 시작
+   * 12) 초기 시작
    ********************************************************************/
   (async function init() {
     renderSceneTabs();
@@ -390,8 +455,6 @@
     const first = firstDefinedPosInScene(currentSceneId);
     if (first) moveTo(first.x, first.y);
     else moveTo(0.5, 0.5);
-
-    toast('준비 완료');
   })();
 </script>
 </body>
