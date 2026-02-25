@@ -27,7 +27,10 @@
       backdrop-filter: blur(10px);
       align-items: center;
     }
+
+    /* 버튼 기본 */
     .btn{
+      position: relative;
       border: 0;
       border-radius: 999px;
       padding: 7px 10px;
@@ -40,6 +43,7 @@
       line-height: 1;
       user-select: none;
       white-space: nowrap;
+      isolation: isolate; /* pseudo-element 레이어 분리 */
     }
     .btn.active{
       background:#2f7cff;
@@ -68,16 +72,16 @@
       max-width:none;
       user-select:none;
       -webkit-user-drag:none;
-      pointer-events:none; /* 사진 클릭은 stage에서 받음 */
+      pointer-events:none;
     }
 
-    /* 마커 레이어(필수) */
+    /* 마커 레이어 */
     #markersLayer{
       position:absolute;
       inset:0;
       width:100%;
       height:100%;
-      pointer-events:none;
+      pointer-events:none; /* 기본은 none, 마커만 pointer-events:auto로 */
     }
 
     /* 마커(글자만 둥둥) */
@@ -91,10 +95,12 @@
       text-shadow:0 2px 10px rgba(0,0,0,.95);
       white-space:nowrap;
       user-select:none;
-      pointer-events:none; /* 마커 클릭 막음 */
+      pointer-events:auto; /* ✅ 마커 터치/클릭 가능 */
+      cursor: pointer;
+      isolation: isolate;
     }
 
-    /* 토스트(방문자용 안내용만) */
+    /* 토스트 */
     #toast{
       position:absolute; left:12px; bottom:12px;
       background:rgba(0,0,0,.65); color:#fff;
@@ -108,13 +114,126 @@
     @media (max-width: 420px) {
       .btn { padding: 6px 9px; font-size: 11px; }
       .bar { padding: 7px; }
+      .txt-marker { font-size: 16px; }
+    }
+
+    /******************************************************************
+     * ✨ 화려한 강조 효과 (링 + 색변화 + 반짝임)
+     * - 버튼과 마커 둘 다 동일 컨셉으로 2.6초 정도 강조
+     ******************************************************************/
+    @keyframes hueSpin {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(220deg); }
+    }
+    @keyframes ringPulse {
+      0%   { transform: translate(-50%, -50%) scale(0.85); opacity: 0; }
+      12%  { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
+      55%  { transform: translate(-50%, -50%) scale(1.25); opacity: 0.65; }
+      100% { transform: translate(-50%, -50%) scale(1.55); opacity: 0; }
+    }
+    @keyframes sparkle {
+      0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.7) rotate(0deg); }
+      15%  { opacity: 1; transform: translate(-50%, -50%) scale(1.0) rotate(20deg); }
+      55%  { opacity: 0.85; transform: translate(-50%, -50%) scale(1.05) rotate(70deg); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1.25) rotate(120deg); }
+    }
+    @keyframes textPop {
+      0%   { transform: translate(-50%, -50%) scale(1); }
+      10%  { transform: translate(-50%, -50%) scale(1.22); }
+      25%  { transform: translate(-50%, -50%) scale(1.12); }
+      100% { transform: translate(-50%, -50%) scale(1); }
+    }
+
+    /* 마커 플래시 */
+    .txt-marker.flash{
+      animation: textPop 2.6s ease-out 1, hueSpin 2.6s linear 1;
+      color: #dff3ff;
+      text-shadow:
+        0 0 10px rgba(255,255,255,.95),
+        0 0 18px rgba(47,124,255,.85),
+        0 2px 10px rgba(0,0,0,.95);
+    }
+    .txt-marker.flash::before{
+      content:"";
+      position:absolute;
+      left:50%; top:50%;
+      width: 22px; height: 22px;
+      border-radius: 999px;
+      border: 2px solid rgba(160, 220, 255, .95);
+      box-shadow:
+        0 0 0 2px rgba(47,124,255,.35),
+        0 0 18px rgba(47,124,255,.9),
+        0 0 30px rgba(255,255,255,.55);
+      transform: translate(-50%, -50%);
+      animation: ringPulse 2.6s ease-out 1, hueSpin 2.6s linear 1;
+      pointer-events:none;
+      z-index:-1;
+    }
+    .txt-marker.flash::after{
+      content:"✦";
+      position:absolute;
+      left:50%; top:50%;
+      font-size: 18px;
+      color: rgba(255,255,255,.95);
+      text-shadow: 0 0 18px rgba(255,255,255,.9), 0 0 28px rgba(47,124,255,.85);
+      transform: translate(-50%, -50%);
+      animation: sparkle 2.6s ease-out 1, hueSpin 2.6s linear 1;
+      pointer-events:none;
+      z-index:-1;
+    }
+
+    /* 버튼 플래시(링은 버튼 밖으로) */
+    @keyframes btnPulse {
+      0%   { transform: scale(1); }
+      10%  { transform: scale(1.08); }
+      25%  { transform: scale(1.04); }
+      100% { transform: scale(1); }
+    }
+    @keyframes btnRing {
+      0%   { transform: scale(0.95); opacity: 0; }
+      12%  { transform: scale(1.05); opacity: 1; }
+      55%  { transform: scale(1.18); opacity: 0.65; }
+      100% { transform: scale(1.32); opacity: 0; }
+    }
+
+    .btn.flash{
+      animation: btnPulse 2.6s ease-out 1, hueSpin 2.6s linear 1;
+      background: rgba(255,255,255,.14);
+      box-shadow:
+        0 0 0 2px rgba(47,124,255,.35),
+        0 0 18px rgba(47,124,255,.85);
+    }
+    .btn.flash::before{
+      content:"";
+      position:absolute;
+      inset:-6px;
+      border-radius: 999px;
+      border: 2px solid rgba(160, 220, 255, .92);
+      box-shadow:
+        0 0 0 2px rgba(47,124,255,.25),
+        0 0 18px rgba(47,124,255,.85),
+        0 0 30px rgba(255,255,255,.45);
+      animation: btnRing 2.6s ease-out 1, hueSpin 2.6s linear 1;
+      pointer-events:none;
+      z-index:-1;
+    }
+    .btn.flash::after{
+      content:"✦";
+      position:absolute;
+      right: -6px;
+      top: -10px;
+      font-size: 14px;
+      color: rgba(255,255,255,.95);
+      text-shadow: 0 0 12px rgba(255,255,255,.85), 0 0 22px rgba(47,124,255,.85);
+      animation: sparkle 2.6s ease-out 1, hueSpin 2.6s linear 1;
+      pointer-events:none;
+      z-index: 1;
     }
   </style>
 </head>
 
 <body>
 <div id="wrap">
-  <!-- 상단 바: 사진 탭 + 장소 목록 -->
   <div id="topbar">
     <div class="bar" id="sceneTabs"></div>
     <div class="bar" id="placeTabs"></div>
@@ -140,7 +259,7 @@
     { id: 'img3', name: '신관', src: 'images/3.jpg' },
   ];
 
-  /********************************************************************
+   /********************************************************************
    * 2) 장소 목록 (추가/삭제는 여기만)
    ********************************************************************/
    const PLACES = [
@@ -194,7 +313,6 @@
     '도서관, 영어실, 미술실': { scene: 'img1', x: null, y: null }
     // 예) '도서관': { scene: 'img1', x: 0.33, y: 0.62 },
   };
-
 
   /********************************************************************
    * 4) PLACES만 늘려도 누락 방지되게 자동 보정
@@ -264,7 +382,6 @@
     let tx = (sw / 2) - cx;
     let ty = (sh / 2) - cy;
 
-    // contain에서는 world가 stage보다 작을 수 있으니 "작으면 가운데 고정"
     if (w <= sw) tx = (sw - w) / 2;
     else {
       const minTx = sw - w;
@@ -281,7 +398,27 @@
   }
 
   /********************************************************************
-   * 7) 마커 렌더링: "현재 사진"에 속한 장소만 표시
+   * 7) ✨ 강조(버튼/마커) — 2.6초 화려한 플래시
+   ********************************************************************/
+  function restartFlash(el) {
+    if (!el) return;
+    el.classList.remove('flash');
+    void el.offsetWidth; // reflow => 애니메이션 재시작
+    el.classList.add('flash');
+    setTimeout(() => el.classList.remove('flash'), 2700);
+  }
+
+  function flashPlace(place) {
+    const btn = $placeTabs.querySelector(`button[data-place="${CSS.escape(place)}"]`);
+    restartFlash(btn);
+
+    // 현재 씬에 렌더된 마커만 잡힘
+    const mk = $markersLayer.querySelector(`.txt-marker[data-place="${CSS.escape(place)}"]`);
+    restartFlash(mk);
+  }
+
+  /********************************************************************
+   * 8) 마커 렌더링: "현재 사진"에 속한 장소만 표시
    ********************************************************************/
   function clearMarkers() { $markersLayer.innerHTML = ''; }
 
@@ -289,8 +426,22 @@
     const el = document.createElement('div');
     el.className = 'txt-marker';
     el.textContent = label;
+    el.dataset.place = label;
     el.style.left = `${x * 100}%`;
     el.style.top  = `${y * 100}%`;
+
+    // ✅ 마커 터치/클릭 시: 해당 장소로 이동 + 강조
+    el.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const d = PLACE_DATA[label];
+      if (!d || d.x == null || d.y == null) return;
+
+      if (d.scene !== currentSceneId) await switchScene(d.scene);
+      moveTo(d.x, d.y);
+      flashPlace(label);
+      toast(`${label}로 이동`);
+    });
+
     $markersLayer.appendChild(el);
   }
 
@@ -314,7 +465,7 @@
   }
 
   /********************************************************************
-   * 8) 상단 탭 렌더링
+   * 9) 상단 탭 렌더링
    ********************************************************************/
   function renderSceneTabs() {
     $sceneTabs.innerHTML = '';
@@ -333,16 +484,18 @@
       const b = document.createElement('button');
       b.className = 'btn';
       b.textContent = place;
+      b.dataset.place = place;
 
       b.onclick = async () => {
         const d = PLACE_DATA[place];
         if (!d || d.x == null || d.y == null) {
+          flashPlace(place);
           toast(`${place}: 좌표 미지정`);
           return;
         }
-        // 장소가 속한 사진으로 자동 전환 후 이동
         if (d.scene !== currentSceneId) await switchScene(d.scene);
         moveTo(d.x, d.y);
+        flashPlace(place);
         toast(`${place}로 이동`);
       };
 
@@ -351,7 +504,7 @@
   }
 
   /********************************************************************
-   * 9) 이미지 로드 / 장면 전환
+   * 10) 이미지 로드 / 장면 전환
    ********************************************************************/
   function loadImage(sceneId) {
     const scene = SCENES.find(s => s.id === sceneId);
@@ -371,30 +524,16 @@
 
     layoutContain();
     renderMarkersForCurrentScene();
-
-    const first = firstDefinedPosInScene(sceneId);
-    if (first) moveTo(first.x, first.y);
-    else moveTo(0.5, 0.5);
   }
 
   /********************************************************************
-   * 10) ✅ 개발자용 좌표 찍기 모드 (PC 전용 가정)
-   *     사용법(좌표 찍기)
-
-        크롬에서 페이지 열기        
-        F12 → Console 탭 열기        
-        원하는 지점을 Shift + 클릭        
-        콘솔에 이렇게 출력되고, 클립보드에 자동 복사됩니다:        
-        [복붙용] { scene: 'img1', x: 0.123456, y: 0.654321 }        
-        그걸 그대로 PLACE_DATA의 해당 장소에 넣으면 됩니다.
+   * 11) ✅ 개발자용 좌표 찍기 모드 (Shift + 클릭)
+   *     - 출력: Console + 클립보드 자동 복사
    ********************************************************************/
   function screenToRatioXY(clientX, clientY) {
-    // stage 안에서 실제 이미지가 그려진 영역(world의 크기/위치)을 기준으로 비율좌표 계산
     const imgRect = $photo.getBoundingClientRect();
     const rx = (clientX - imgRect.left) / imgRect.width;
     const ry = (clientY - imgRect.top) / imgRect.height;
-
-    // 이미지 바깥(여백) 클릭이면 null
     if (rx < 0 || rx > 1 || ry < 0 || ry > 1) return null;
     return { x: rx, y: ry };
   }
@@ -403,7 +542,6 @@
     try {
       await navigator.clipboard.writeText(text);
     } catch {
-      // fallback
       const ta = document.createElement('textarea');
       ta.value = text;
       document.body.appendChild(ta);
@@ -414,7 +552,6 @@
   }
 
   $stage.addEventListener('click', async (e) => {
-    // ✅ Shift 안 누르면 아무 것도 안 함 (방문자에게는 기능이 사실상 없음)
     if (!e.shiftKey) return;
 
     const pos = screenToRatioXY(e.clientX, e.clientY);
@@ -427,28 +564,26 @@
     const x = Number(pos.x.toFixed(6));
     const y = Number(pos.y.toFixed(6));
 
-    // 콘솔 출력 (place 설정에 바로 복붙하기 좋게)
     const snippet = `{ scene: '${currentSceneId}', x: ${x}, y: ${y} }`;
     console.log(`[좌표] scene=${currentSceneId}  x=${x}, y=${y}`);
     console.log(`[복붙용] ${snippet}`);
 
-    // 자동 복사 (편의)
     await copyToClipboard(snippet);
-
-    // 방문자에게 과하게 노출될 필요 없지만, 작업자는 알 수 있게 아주 짧게만
     toast('좌표 복사됨(Shift+클릭)');
   });
 
   /********************************************************************
-   * 11) 리사이즈
+   * 12) 리사이즈
    ********************************************************************/
   window.addEventListener('resize', () => {
     layoutContain();
-    moveTo(0.5, 0.5);
+    // contain이면 중앙이 자연스러움
+    $world.style.transform = `translate(${($stage.clientWidth - $photo.getBoundingClientRect().width)/2}px,
+                                         ${($stage.clientHeight - $photo.getBoundingClientRect().height)/2}px)`;
   });
 
   /********************************************************************
-   * 12) 초기 시작
+   * 13) 초기 시작
    ********************************************************************/
   (async function init() {
     renderSceneTabs();
@@ -464,5 +599,4 @@
   })();
 </script>
 </body>
-
 </html>
